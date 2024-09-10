@@ -1,0 +1,80 @@
+            <div class="board">
+                <h1>Meet the current board:</h1>
+                <div class="board-cards-container">
+                    <div class="board-card">
+                        <div class="profile-picture president-img"></div>
+                        <h3>Frank Broy (President)</h3>
+                        <p>
+                            Frank is currently completing a Cybersecurity
+                            master's program at TU Delft. He is primarily
+                            responsible for external affairs and relations in
+                            addition to coaching most of the training sessions.
+                            Originally from Luxembourg, he enjoys bouldering,
+                            video games, and attending rock and metal concerts.
+                        </p>
+                    </div>
+                    <div class="board-card">
+                        <div class="profile-picture vice-president-img"></div>
+                        <h3>Dylan Bravo (Vice President)</h3>
+                        <p>
+                            Dylan is completing a Master's in Transportation,
+                            Infrastructure, and Logistics at TU Delft. He is
+                            primarily responsible for internal club affairs and
+                            happenings whilst also filling in as a coach for the
+                            training sessions when needed. A citizen of the
+                            Netherlands, Canada, and the United States, Dylan
+                            enjoys playing board games, running 10Ks, and
+                            traveling the world.
+                        </p>
+                    </div>
+                    <div class="board-card">
+                        <div class="profile-picture treasurer-img"></div>
+                        <h3>Niklas Perujo (Treasurer)</h3>
+                        <p>
+                            Niklas is completing an Aerospace Engineering
+                            master's at TU Delft. He is primarily responsible
+                            for all financial affairs for the association.
+                            German and American, he enjoys listening to music,
+                            attending festivals, and spending time with family.
+                        </p>
+                    </div>
+                    <div class="board-card">
+                        <div class="profile-picture secretary-img"></div>
+                        <h3>Susanne Epema (Secretary)</h3>
+                        <p>
+                            Susanne is completing a Geomatics master's at TU
+                            Delft. She is primarily responsible for
+                            documentation and organization of the association's
+                            records and files. Fully Dutch, she enjoys playing
+                            football, painting, and reading in her spare time.
+                        </p>
+                    </div>
+                </div>
+                <!-- <div class="board-img">
+                    <img src="images/board-front.jpg" alt="Board image">
+                </div> -->
+                <div class="slideshow">
+                    <div class="slideshow-container">
+                        <!-- Full-width images with number and caption text -->
+                        <div class="mySlides2 fade">
+                            <img src="images/board-front.jpg" />
+                        </div>
+
+                        <div class="mySlides2 fade">
+                            <img src="images/board-back.jpg" />
+                        </div>
+
+                        <!-- Next and previous buttons -->
+                        <div>
+                            <a class="prev" onclick="prevClicked2()">&#10094;</a>
+                            <a class="next" onclick="nextClicked2()">&#10095;</a>
+                        </div>
+                    </div>
+
+                    <!-- The dots/circles -->
+                    <div style="text-align: center">
+                        <span class="dot2" onclick="currentSlide2(1)"></span>
+                        <span class="dot2" onclick="currentSlide2(2)"></span>
+                    </div>
+                </div>
+            </div>
