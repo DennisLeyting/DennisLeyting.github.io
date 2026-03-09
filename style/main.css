@@ -1,0 +1,87 @@
+/* main.css */
+
+/* Body en achtergrond */
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: url('../DelftsblauwBanner.png') no-repeat center top;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+/* Container voor content */
+.container {
+  max-width: 1024px;
+  margin: 0 auto;
+}
+
+/* Pagina titel */
+header h1 {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Tabel styling */
+table#wijzigingen-tabel {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+  /* Transparant wit zodat achtergrond zichtbaar is */
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* Table header */
+thead th {
+  background-color: rgba(240, 240, 240, 0.85);
+  text-align: left;
+  padding: 12px;
+  border-bottom: 2px solid #ccc;
+}
+
+/* Tabel body cells */
+tbody td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Afwisselende rijen met transparantie */
+tbody tr:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+tbody tr:nth-child(even) {
+  background-color: rgba(247, 247, 247, 0.1);
+}
+
+/* Geen data boodschap */
+.no-data {
+  text-align: center;
+  font-size: 18px;
+  margin-top: 20px;
+  color: #333;
+}
+
+/* Optioneel: hover effect op rijen */
+tbody tr:hover {
+  background-color: rgba(200, 200, 200, 0.5);
+}
+
+/* Buttons (indien gebruikt later) */
+button {
+  padding: 8px 16px;
+  margin: 0 4px;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+}
+
+button:hover {
+  background-color: #e0e0e0;
+}
