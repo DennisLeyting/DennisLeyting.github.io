@@ -5,7 +5,7 @@ body {
   margin: 0;
   padding: 20px;
   font-family: Arial, sans-serif;
-  background: url('../DelftsblauwBanner.png') no-repeat center top;
+  /* background: url('../DelftsblauwBanner.png') no-repeat center top; */
   background-size: cover;
   background-attachment: fixed;
 }
