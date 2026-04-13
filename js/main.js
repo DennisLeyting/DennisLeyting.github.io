@@ -5,7 +5,7 @@ const DAG_NAMEN = {
   2: "Dinsdag",
   3: "Woensdag",
   4: "Donderdag",
-  5: "Vrijdag"
+  5: "Vrijdag",
 };
 
 let slides = [];
@@ -32,11 +32,50 @@ function parseDatum(datumString) {
   return new Date(jaar, maand, dag);
 }
 
+function getVandaagTekst() {
+  const datum = new Date();
+
+  const dagen = [
+    "zondag",
+    "maandag",
+    "dinsdag",
+    "woensdag",
+    "donderdag",
+    "vrijdag",
+    "zaterdag",
+  ];
+  const maanden = [
+    "januari",
+    "februari",
+    "maart",
+    "april",
+    "mei",
+    "juni",
+    "juli",
+    "augustus",
+    "september",
+    "oktober",
+    "november",
+    "december",
+  ];
+
+  return `${dagen[datum.getDay()]} ${datum.getDate()} ${maanden[datum.getMonth()]}`;
+}
+
 function formatDatum(datum) {
   const maanden = [
-    "januari", "februari", "maart", "april",
-    "mei", "juni", "juli", "augustus",
-    "september", "oktober", "november", "december"
+    "januari",
+    "februari",
+    "maart",
+    "april",
+    "mei",
+    "juni",
+    "juli",
+    "augustus",
+    "september",
+    "oktober",
+    "november",
+    "december",
   ];
 
   return `${datum.getDate()} ${maanden[datum.getMonth()]}`;
@@ -56,7 +95,7 @@ async function loadCSV() {
 }
 
 function mapBasisRooster(rows) {
-  return rows.map(r => {
+  return rows.map((r) => {
     const datumObj = parseDatum(r[0]);
 
     return {
@@ -67,7 +106,7 @@ function mapBasisRooster(rows) {
       docent: r[3] || "",
       vak: r[4] || "",
       lokaal: r[5] || "",
-      lesuur: Number(r[6])
+      lesuur: Number(r[6]),
     };
   });
 }
@@ -75,7 +114,7 @@ function mapBasisRooster(rows) {
 function groepeerRooster(data) {
   const groepen = {};
 
-  data.forEach(item => {
+  data.forEach((item) => {
     if (!groepen[item.dag]) {
       groepen[item.dag] = {};
     }
@@ -91,24 +130,19 @@ function groepeerRooster(data) {
 }
 
 function maakSlides(groepen) {
-
   slides = [];
 
   Object.keys(groepen)
     .sort((a, b) => a - b)
-    .forEach(dag => {
-
+    .forEach((dag) => {
       slides.push({
         dag: dag,
-        data: groepen[dag] // bevat alle lesuren
+        data: groepen[dag],
       });
-
     });
-
 }
 
 function renderSlide() {
-
   const container = document.getElementById("tables-container");
   container.innerHTML = "";
 
@@ -116,69 +150,113 @@ function renderSlide() {
 
   const slide = slides[currentSlide];
 
-  // alle data plat maken
+  const alleLesuren = Object.keys(slide.data).sort((a, b) => a - b);
+
   let allData = [];
 
-  Object.keys(slide.data)
-    .sort((a, b) => a - b)
-    .forEach(lesuur => {
-      slide.data[lesuur].forEach(item => {
-        allData.push(item);
-      });
+  alleLesuren.forEach((lesuur) => {
+    allData.push({ type: "header", lesuur });
+
+    slide.data[lesuur].forEach((item) => {
+      allData.push({ type: "row", item });
     });
+  });
 
   const kolommen = 5;
   const perKolom = Math.ceil(allData.length / kolommen);
 
-  const datumText = allData[0]?.datumFormatted || "";
+  let chunks = [];
 
   for (let i = 0; i < kolommen; i++) {
+    chunks.push(allData.slice(i * perKolom, (i + 1) * perKolom));
+  }
 
-    const start = i * perKolom;
-    const subset = allData.slice(start, start + perKolom);
-
-    if (subset.length === 0) continue;
-
+  chunks.forEach((chunk) => {
     const table = document.createElement("table");
     table.classList.add("rooster-tabel");
 
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th colspan="5" style="font-size:14px;">
-            ${DAG_NAMEN[slide.dag]} ${datumText}
-          </th>
-        </tr>
-        <tr>
-          <th>Klas</th>
-          <th>Lesuur</th>
-          <th>Vak</th>
-          <th>Docent</th>
-          <th>Lokaal</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
+    const tbody = document.createElement("tbody");
+
+    // 🔥 KOLOM HEADERS (alleen 1x, zonder datum/dag)
+    const columnHeader = document.createElement("tr");
+    columnHeader.innerHTML = `
+      <th>Klas</th>
+      <th>Vak</th>
+      <th>Docent</th>
+      <th>Lokaal</th>
     `;
+    tbody.appendChild(columnHeader);
 
-    const tbody = table.querySelector("tbody");
+    chunk.forEach((entry) => {
+      if (entry.type === "header") {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td colspan="4" style="
+            font-weight: bold;
+            text-align: center;
+            background: rgba(240,240,240,0.9);
+            padding: 2px;
+          ">
+            Lesuur ${entry.lesuur}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
 
-    subset.forEach(item => {
-
-      const tr = document.createElement("tr");
-
-      tr.innerHTML = `
-        <td>${item.klas}</td>
-        <td>${item.lesuur}</td>
-        <td>${item.vak}</td>
-        <td>${item.docent}</td>
-        <td>${item.lokaal}</td>
-      `;
-
-      tbody.appendChild(tr);
+      if (entry.type === "row") {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${entry.item.klas}</td>
+          <td>${entry.item.vak}</td>
+          <td>${entry.item.docent}</td>
+          <td>${entry.item.lokaal}</td>
+        `;
+        tbody.appendChild(tr);
+      }
     });
 
+    table.appendChild(tbody);
     container.appendChild(table);
+  });
+
+  // 🔥 BELANGRIJK: titel buiten de tabellen zetten
+  const eersteLesuur = Object.values(slide.data)[0];
+  const firstItem = eersteLesuur?.[0];
+
+  let datumText = "";
+
+  if (firstItem?.datum) {
+    const datum = firstItem.datum;
+
+    const dagen = [
+      "zondag",
+      "maandag",
+      "dinsdag",
+      "woensdag",
+      "donderdag",
+      "vrijdag",
+      "zaterdag",
+    ];
+    const maanden = [
+      "januari",
+      "februari",
+      "maart",
+      "april",
+      "mei",
+      "juni",
+      "juli",
+      "augustus",
+      "september",
+      "oktober",
+      "november",
+      "december",
+    ];
+
+    datumText = `${dagen[datum.getDay()]} ${datum.getDate()} ${maanden[datum.getMonth()]}`;
   }
+
+  document.getElementById("page-title").textContent =
+    `Roosterwijzigingen – ${datumText}`;
 }
 
 function startSlideshow() {
@@ -196,6 +274,8 @@ function startSlideshow() {
 }
 
 async function init() {
+  document.getElementById("page-title").textContent = `Roosterwijzigingen`;
+
   const rows = await loadCSV();
   const rooster = mapBasisRooster(rows);
 
