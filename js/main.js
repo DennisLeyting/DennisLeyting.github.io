@@ -1,4 +1,4 @@
-const CSV_FILE = "basis 12-12.csv";
+const CSV_FILE = "dag 19-01 tm 23-01.csv";
 
 const DAG_NAMEN = {
   1: "Maandag",
@@ -21,6 +21,27 @@ function getVandaagDagNummer() {
   return vandaag; // maandag=1 t/m vrijdag=5
 }
 
+// NIEUW: datum omzetten naar dagnummer (1-5)
+function parseDatum(datumString) {
+  const str = String(datumString);
+
+  const jaar = parseInt(str.substring(0, 4));
+  const maand = parseInt(str.substring(4, 6)) - 1; // JS maand = 0-11
+  const dag = parseInt(str.substring(6, 8));
+
+  return new Date(jaar, maand, dag);
+}
+
+function formatDatum(datum) {
+  const maanden = [
+    "januari", "februari", "maart", "april",
+    "mei", "juni", "juli", "augustus",
+    "september", "oktober", "november", "december"
+  ];
+
+  return `${datum.getDate()} ${maanden[datum.getMonth()]}`;
+}
+
 async function loadCSV() {
   const response = await fetch(CSV_FILE);
   const csvText = await response.text();
@@ -28,37 +49,33 @@ async function loadCSV() {
   const workbook = XLSX.read(csvText, { type: "string" });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-  let rows = XLSX.utils.sheet_to_json(sheet);
-
-  // headers opschonen
-  rows = rows.map(row => {
-    const cleaned = {};
-    Object.keys(row).forEach(key => {
-      cleaned[key.trim()] = row[key];
-    });
-    return cleaned;
-  });
+  // GEEN headers → array van arrays
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
   return rows;
 }
 
 function mapBasisRooster(rows) {
-  return rows.map(r => ({
-    klas: r.Klas || "",
-    docent: r.Docent || "",
-    vak: r.Vak || "",
-    lokaal: r.Lokaal || "",
-    dag: Number(r.Dag),
-    lesuur: Number(r.Lesuur)
-  }));
+  return rows.map(r => {
+    const datumObj = parseDatum(r[0]);
+
+    return {
+      datum: datumObj,
+      datumFormatted: formatDatum(datumObj),
+      dag: datumObj.getDay(), // 1-5
+      klas: r[2] || "",
+      docent: r[3] || "",
+      vak: r[4] || "",
+      lokaal: r[5] || "",
+      lesuur: Number(r[6])
+    };
+  });
 }
 
 function groepeerRooster(data) {
-
   const groepen = {};
 
   data.forEach(item => {
-
     if (!groepen[item.dag]) {
       groepen[item.dag] = {};
     }
@@ -68,7 +85,6 @@ function groepeerRooster(data) {
     }
 
     groepen[item.dag][item.lesuur].push(item);
-
   });
 
   return groepen;
@@ -79,20 +95,13 @@ function maakSlides(groepen) {
   slides = [];
 
   Object.keys(groepen)
-    .sort((a,b) => a-b)
+    .sort((a, b) => a - b)
     .forEach(dag => {
 
-      Object.keys(groepen[dag])
-        .sort((a,b) => a-b)
-        .forEach(lesuur => {
-
-          slides.push({
-            dag: dag,
-            lesuur: lesuur,
-            data: groepen[dag][lesuur]
-          });
-
-        });
+      slides.push({
+        dag: dag,
+        data: groepen[dag] // bevat alle lesuren
+      });
 
     });
 
@@ -100,46 +109,82 @@ function maakSlides(groepen) {
 
 function renderSlide() {
 
-  const tbody = document.getElementById("tabel-body");
-  tbody.innerHTML = "";
+  const container = document.getElementById("tables-container");
+  container.innerHTML = "";
 
   if (slides.length === 0) return;
 
   const slide = slides[currentSlide];
 
-  const titel = document.createElement("tr");
-  titel.innerHTML = `
-    <td colspan="6" style="font-size:22px; font-weight:bold; padding:15px;">
-      ${DAG_NAMEN[slide.dag]} — Lesuur ${slide.lesuur}
-    </td>
-  `;
-  tbody.appendChild(titel);
+  // alle data plat maken
+  let allData = [];
 
-  slide.data.forEach(item => {
+  Object.keys(slide.data)
+    .sort((a, b) => a - b)
+    .forEach(lesuur => {
+      slide.data[lesuur].forEach(item => {
+        allData.push(item);
+      });
+    });
 
-    const tr = document.createElement("tr");
+  const kolommen = 5;
+  const perKolom = Math.ceil(allData.length / kolommen);
 
-    tr.innerHTML = `
-      <td>${item.klas}</td>
-      <td>${item.lesuur}</td>
-      <td>${item.vak}</td>
-      <td>${item.docent}</td>
-      <td>${item.lokaal}</td>
-      <td>${DAG_NAMEN[item.dag]}</td>
+  const datumText = allData[0]?.datumFormatted || "";
+
+  for (let i = 0; i < kolommen; i++) {
+
+    const start = i * perKolom;
+    const subset = allData.slice(start, start + perKolom);
+
+    if (subset.length === 0) continue;
+
+    const table = document.createElement("table");
+    table.classList.add("rooster-tabel");
+
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th colspan="5" style="font-size:14px;">
+            ${DAG_NAMEN[slide.dag]} ${datumText}
+          </th>
+        </tr>
+        <tr>
+          <th>Klas</th>
+          <th>Lesuur</th>
+          <th>Vak</th>
+          <th>Docent</th>
+          <th>Lokaal</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
     `;
 
-    tbody.appendChild(tr);
+    const tbody = table.querySelector("tbody");
 
-  });
+    subset.forEach(item => {
 
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${item.klas}</td>
+        <td>${item.lesuur}</td>
+        <td>${item.vak}</td>
+        <td>${item.docent}</td>
+        <td>${item.lokaal}</td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+
+    container.appendChild(table);
+  }
 }
 
 function startSlideshow() {
-
   renderSlide();
 
   setInterval(() => {
-
     currentSlide++;
 
     if (currentSlide >= slides.length) {
@@ -147,31 +192,18 @@ function startSlideshow() {
     }
 
     renderSlide();
-
   }, 10000);
-
 }
 
 async function init() {
-
   const rows = await loadCSV();
   const rooster = mapBasisRooster(rows);
 
-  const vandaag = getVandaagDagNummer();
-
-  if (!vandaag) {
-    console.log("Weekend - geen rooster");
-    return;
-  }
-
-  const vandaagRooster = rooster.filter(r => r.dag === vandaag);
-
-  const groepen = groepeerRooster(vandaagRooster);
+  const groepen = groepeerRooster(rooster);
 
   maakSlides(groepen);
 
   startSlideshow();
-
 }
 
 document.addEventListener("DOMContentLoaded", init);
